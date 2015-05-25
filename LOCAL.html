@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>Getting Start TGOS MAP</title>
+
+<!-- JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="jquery.panzoom.min.js"></script>
+<script src="jquery.mousewheel.js"></script>
+
+<!-- CSS -->
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script type="text/javascript">
+
+var a ;
+var _X = 0;
+var _Y = 0;
+
+$(document).ready(function(){
+    var $section = $('#area');
+    var $panzoom = $section.find('.panzoom').panzoom();
+
+    var isDrawing = false ;
+
+    a = $panzoom.panzoom("instance");
+
+    var w = $('#mainImage').width();
+    var h = $('#mainImage').height();
+
+    $('.panzoom').width(w)
+                 .height(h);
+    
+
+
+ 
+
+    $panzoom.panzoom("option", {
+        //contain: true
+    });    
+
+    //設定滾輪事件
+    $panzoom.parent().on('mousewheel.focal', function( e ) {
+        e.preventDefault();
+        var delta = e.delta || e.originalEvent.wheelDelta;
+        var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+        $panzoom.panzoom('zoom', zoomOut, {
+            //increment: 0.1,
+            animate: false,
+            focal: e,
+            minScale: 1
+        });
+    });
+
+    //座標移動事件
+    var ParentOffset = $('.panzoom').offset();
+
+    $("#pointer").draggable({
+        cursor: "crosshair",
+        containment: $('#area'), //"parent",
+        //cursorAt : { left: -_X, top: -_Y },
+        start: function( e, ui ) {
+
+            processMaxtrix(a.getMatrix());
+            $(this).draggable("option", "cursorAt", {
+                left: _X,
+                top: _Y
+            });
+
+            console.log("panzoom 位移量: " + _X + ' , ' + _Y);
+            console.log($(this).draggable( "option", "cursorAt" ));
+
+            //console.log("Pointer Event Start");
+            //console.log(ParentOffset);
+            a.disable();
+        },
+        stop: function(e, ui) {
+            //console.log("Pointer Event End");
+            a.enable();
+        },
+        drag: function( e, ui ) {
+            var posX = $section.position().left,
+                posY = $section.position().top;
+            console.log('Mouse Offset : ' + (e.pageX - posX) + ' , ' + (e.pageY - posY));
+            //console.log("Mouse Offset : " + event.pageX + " , " + event.pageY);
+        }
+    });
+
+    //設定地圖拖拉結束事件
+    $panzoom.panzoom("option", {
+        onEnd : function(){
+            processMaxtrix(a.getMatrix());
+            console.log("Map Offset   : " + _X + ' , ' + _Y);
+        }
+    });
+
+    //設定外層圖框點擊事件
+    $section.click(function(e){
+        var posX = $(this).position().left,
+            posY = $(this).position().top;
+        console.log('Click Offset : ' + (e.pageX - posX) + ' , ' + (e.pageY - posY));
+    });
+
+});
+
+//處理矩陣
+function processMaxtrix(arr) {
+    _X = arr[4] ;
+    _Y = arr[5] ;
+}
+
+</script>
+<style type="text/css">
+    #wrpper { width: 900px; height: 700px; border:1px solid red; overflow: hidden;  }
+    .panzoom {  }
+
+    #pointer { position: absolute; left: 300px; top: 300px; background: red; }
+
+    #Tester { border: 1px red solid; background: red; width: 100px; height: 100px; }
+
+</style>
+</head>
+
+<body>
+    <div id="wrpper">
+        <div id="area">
+        	<div class="panzoom">
+                <img id="mainImage" src="map2.jpg">
+                <div id="pointer"><img src="pointer.png" /></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

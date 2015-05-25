@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>Getting Start TGOS MAP</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+<!--script type="text/javascript" src="http://api.tgos.nat.gov.tw/TGOS_API/tgos?ver=2&AppID=x+JLVSx85Lk=&APIKey=in8W74q0ogpcfW/STwicK8D5QwCdddJf05/7nb+OtDh8R99YN3T0LurV4xato3TpL/fOfylvJ9Wv/khZEsXEWxsBmg+GEj4AuokiNXCh14Rei21U5GtJpIkO++Mq3AguFK/ISDEWn4hMzqgrkxNe1Q==" charset="utf-8"></script-->
+
+
+<!--script type="text/javascript" src="http://api.tgos.nat.gov.tw/TGOS_API/tgos?ver=2&AppID=joW6DKeQyLG5Z+w7dqJoMCueaj3CEl9IuIZzPoW+PkSSAt5GuGwLng==&APIKey=cGEErDNy5yN/1fQ0vyTOZrghjE+jIU6ufDZqmzTlPqL9Ai20GLX9rdphfRJdnWT6+FFNe3GBde/Q9DmgGijL/jXisjCE4bN+yiQOv18G2fMguBKUn9htGxM/VloNlboOUKr2JJK+/liGtmGQErtZZ2EbJpaRbmU0H1LZ1g8wBbV1YdWHMo4cKZ5PPxzzMGC0O1S+3mB0rPc8B0bFi8wccGsXwsMIt82BXHEYBVmtmXZYdhKYc1dcSHbnkfTLka/+/8qQLkcYPqwih166MNLBS7ThbCoglNRyHB2QpuiYvspW/GCgp/h2evpIhpFXEwPI" charset="utf-8"></script-->
+
+<!--script type="text/javascript" 
+        src="http://api.tgos.nat.gov.tw/TGOS_API/tgos?ver=2&AppID=e4fSdVUolRuc/JESeAPqUU/ZYRZ/pvOPc1lLAP7CnuXDJ33GvU5ozA==&APIKey=cGEErDNy5yN/1fQ0vyTOZrghjE+jIU6upr2fHKk7UcWcK8ZolbFiPLGnpHmioaaHUOjwFHe2w+MoFUK5XlYjZ0O6NrX1dow4j6loqSZD0T64k5ElvwPhupqaa18NEWtyUHe+AEjjvcFdnckNRPLeeP3ArnOwLlU9U4vYnUFQ6F0ZsZ/II1HrasRmLbujqltC2hmnldaanJGg2fzNBS7EfvxF/F11pPf1ZQGLqbBoudzlEJRnw66toY5ef1ns/CDjypkc1YxDQa+VMw+uNFKqw3y9Z88eTeoaEK05y0d5XQRTX0/nKqWPuzWUqRRI+TzslVWZPyWFf1JfK0ZD8DmIGUChn96o0Q38aPe92U86JSjv20gGdOP50CBWujxmFQ0Nto+55Modl7A=" charset="utf-8"></script-->
+
+<script type="text/javascript" src="tgos.js"></script>
+
+<script type="text/javascript">
+
+var _map ;
+var unintMin = 0.54; //1公里 = 0.54分
+
+$(document).ready(function(){
+	 if (typeof TGOS != 'undefined') {
+
+        var Sys_LatLon = TGOS.TGCoordSys.EPSG3857;
+        var Sys_Tw = TGOS.TGCoordSys.EPSG3826;
+        var Sys_PonHou = TGOS.TGCoordSys.EPSG3825;
+
+        var mkTaiwanCenterPoint = new TGOS.TGPoint(120.97388, 23.97565);
+
+        _map = new TGOS.TGOnlineMap(document.getElementById("map_canvas"), Sys_LatLon); //指定坐標軸系統
+        _map.setCenter(mkTaiwanCenterPoint);  //台灣正中心
+        _map.setZoom(8);  //設定目前地圖縮放的層級
+
+        var pathPoint = getSquarePoints(mkTaiwanCenterPoint, 10);
+        var path = new TGOS.TGLineString(pathPoint);
+        var boarder = new TGOS.TGLinearRing(path);
+		var district1 = new TGOS.TGPolygon([boarder]);
+
+        //畫出一個 polygon
+		var polygon = new TGOS.TGFill(_map, district1, {
+            fillColor: '#00FFFF',
+			fillOpacity: 0.5,
+			strokeColor: '#00FF00',
+			strokeWeight: 3,
+			strokeOpacity: 0.5
+        });
+    }
+});
+
+//畫出面資料
+//@arrCloseLinePoints : 傳入封閉線資料列
+function drawpolygon(arrCloseLinePoints) {  // 定義範圍資料
+	 // 定義範圍資料
+	
+	var path = new TGOS.TGLineString(arrCloseLinePoints);
+	var boarder = new TGOS.TGLinearRing(path);
+	var district1 = new TGOS.TGPolygon([boarder]);
+
+	//畫出一個 polygon
+	var polygon = new TGOS.TGFill(_map, district1,{
+									fillColor: '#00FFFF',
+									fillOpacity: 0.5,
+									strokeColor: '#00FF00',
+									strokeWeight: 3,
+									strokeOpacity: 0.5
+								});
+}
+
+
+//取得中心點位其四角點位
+function getSquarePoints(pointCenter, km) {
+    
+    //可新增一選項來選擇中心點位置是要在哪一個方位角(左上、左下、右上、右下、中心)
+
+    var arrResult = new Array();
+    //依照順時針方式計算各新值
+    arrResult.push(pointCenter); //左上角點
+    arrResult.push(new TGOS.TGPoint(ReduceDistance(pointCenter.x, km), pointCenter.y)); //右上角點
+    arrResult.push(new TGOS.TGPoint(ReduceDistance(pointCenter.x, km), ReduceDistance(pointCenter.y, -km))); //右下角點
+    arrResult.push(new TGOS.TGPoint(pointCenter.x, ReduceDistance(pointCenter.y, -km))); //左下角點
+    arrResult.push(pointCenter); //左上角點 //繞回起始點
+
+    return arrResult;
+}
+
+//轉換座標為分
+function toMin(location) { return location * 60; }
+
+//將經或緯度加上長度後，回傳新的經緯度座標
+function ReduceDistance(location, km) {
+    var minLocation = toMin(location);
+    return ((km * unintMin) + minLocation) / 60;
+}
+
+
+</script>
+<style type="text/css">
+
+#map_canvas { width: 800px; height: 600px; border: 1px solid #C0C0C0; }
+
+</style>
+</head>
+
+<body>
+	<div id="map_canvas"></div>
+</body>
+
+</html>

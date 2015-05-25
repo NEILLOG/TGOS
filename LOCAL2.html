@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>Getting Start TGOS MAP</title>
+
+<!-- JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="jquery.mousewheel.min.js"></script>
+
+<!-- CSS -->
+
+<script type="text/javascript">
+
+var scale = 25; //max: 50
+var zoom = 5 ;
+var TIMER ;
+
+$(document).ready(function(){
+
+    var isDraging = false;
+
+    var BoundaryBottom = - $('#mainImage').height() + 700;
+    var BoundaryRight = - $('#mainImage').width() + 900;
+
+    console.log(BoundaryBottom, BoundaryRight); //顯示預設邊界值
+
+    $('#mainImage').draggable({
+        stop: function( e, ui ) {
+
+            console.log(ui.offset);
+            var offsetX = ui.offset.left - $('#wrapper').offset().left;
+            var offsetY = ui.offset.top - $('#wrapper').offset().top;
+            console.log(offsetX, offsetY);
+
+            //監測上、左邊界
+            if(offsetX > 0 && offsetY > 0) 
+                $('#mainImage').animate({ top: "0", left: "0" });
+            else if(offsetY > 0) 
+                $('#mainImage').animate({ top: "0" });
+            else if(offsetX > 0) 
+                $('#mainImage').animate({ left: "0" });
+
+            //監測下、右邊界
+            if(offsetY < BoundaryBottom && offsetX < BoundaryRight) 
+                $('#mainImage').animate({ top: BoundaryBottom, left: BoundaryRight });
+            else if(offsetY < BoundaryBottom) 
+                $('#mainImage').animate({ top: BoundaryBottom });
+            else if(offsetX < BoundaryRight) 
+                $('#mainImage').animate({ left: BoundaryRight });
+
+            //TODO: 這邊加入是否開放標記按鈕的功能設定
+        }
+    });
+    
+    //delta: 正1: 放大 負1: 縮小
+    $('#wrapper').mousewheel(function(event, delta) {
+        //console.log(event.deltaX, event.deltaY, event.wheelDelta);
+        adjScale(delta);
+    });
+
+});
+
+function adjScale(delta) {
+    if(delta == -1 && scale != 1)
+        scale -= 1 ;
+    else if(delta == 1 && scale != 50)
+        scale += 1 ;
+    
+    //console.log(Math.round(scale / 5));
+    zoom = Math.round(scale / 5);
+
+    $('#mainImage').width((zoom * 10) + '%');
+    $('#mainImage').height((zoom * 10) + '%');
+}
+
+</script>
+<style type="text/css">
+#wrapper {  border: 1px red solid; width: 900px; height: 700px; margin: 0 auto;
+            overflow: hidden; }
+#mainImage {  }
+</style>
+</head>
+
+<body>
+	<div id="wrapper"> <!--主要外層框架-->
+        <img id="mainImage" src="map2.jpg">
+    </div>
+</body>
+
+</html>
